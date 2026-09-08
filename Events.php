@@ -10,44 +10,73 @@ use Yii;
 class Events
 {
     /**
-     * Entfernt unerwuenschte Items aus der TopMenu-Leiste, bevor sie gerendert werden.
-     * Kandidaten: /user/people (Mitglieder-Liste)
+     * Injiziert CSS + JS die HumHubs zwei Topbars zu einer verschmelzen,
+     * SiteLogo ausblenden und Mitglieder-Link ausblenden.
+     *
+     * Kein Layout-Override, kein Reflection. Nur DOM-Move nach initialem Render.
+     * HumHub-Widgets bleiben strukturell unangetastet.
      */
-    public static function onTopMenuRun($event)
+    public static function onEndBody($event)
     {
         try {
-            $menu = $event->sender;
-            $items = $menu->getItems();
-            $filtered = [];
-            foreach ($items as $item) {
-                if (self::shouldHide($item)) continue;
-                $filtered[] = $item;
-            }
-            // Menu::items ist protected; ueber Reflection setzen
-            $ref = new \ReflectionClass($menu);
-            $prop = $ref->getProperty('items');
-            $prop->setAccessible(true);
-            $prop->setValue($menu, $filtered);
+            if (Yii::$app->user->isGuest) return;
+
+            $view = $event->sender;
+            $view->registerCss(self::css());
+            $view->registerJs(self::js(), \yii\web\View::POS_END);
         } catch (\Throwable $e) {
             Yii::error('[lichtungtopbar] ' . $e->getMessage());
         }
     }
 
-    protected static function shouldHide(array $item): bool
+    protected static function css(): string
     {
-        $url = self::urlOf($item);
-        if ($url === '') return false;
-        // Ausblenden: /user/people (Mitglieder)
-        if (strpos($url, '/user/people') !== false) return true;
-        return false;
+        return <<<CSS
+/* Vor dem Merge: beide Topbars verstecken um Flackern zu vermeiden */
+body:not(.lichtung-merged) #topbar-first,
+body:not(.lichtung-merged) #topbar-second { visibility: hidden; }
+
+/* Nach dem Merge: zweite Zeile weg, SiteLogo weg, Mitglieder-Link weg */
+body.lichtung-merged #topbar-second { display: none !important; }
+body.lichtung-merged .topbar-brand { display: none !important; }
+body.lichtung-merged nav a[href*="/user/people"],
+body.lichtung-merged #top-menu-nav > li > a[href*="/user/people"] { display: none !important; }
+
+/* Nav-UL vom zweiten Balken sinnvoll positionieren wenn es in erstem Balken landet */
+body.lichtung-merged #topbar-first .container { display: flex; align-items: center; }
+body.lichtung-merged #topbar-first #top-menu-nav {
+    display: flex; align-items: center; margin: 0; padding: 0;
+    list-style: none;
+}
+body.lichtung-merged #topbar-first #search-menu-nav {
+    margin-left: auto;
+    display: flex; align-items: center;
+}
+body.lichtung-merged #topbar-first .topbar-actions,
+body.lichtung-merged #topbar-first .notifications { order: 10; }
+body.lichtung-merged #topbar-first #top-menu-nav { order: 2; }
+body.lichtung-merged #topbar-first #search-menu-nav { order: 5; }
+CSS;
     }
 
-    protected static function urlOf(array $item): string
+    protected static function js(): string
     {
-        if (isset($item['url'])) {
-            if (is_string($item['url'])) return $item['url'];
-            if (is_array($item['url']) && isset($item['url'][0])) return (string)$item['url'][0];
-        }
-        return '';
+        return <<<JS
+(function() {
+    function merge() {
+        var firstContainer = document.querySelector('#topbar-first > .container');
+        var secondContainer = document.querySelector('#topbar-second > .container');
+        if (!firstContainer || !secondContainer) return;
+        var kids = Array.prototype.slice.call(secondContainer.children);
+        kids.forEach(function(el) { firstContainer.appendChild(el); });
+        document.body.classList.add('lichtung-merged');
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', merge);
+    } else {
+        merge();
+    }
+})();
+JS;
     }
 }
