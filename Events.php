@@ -22,47 +22,18 @@ class Events
     }
 
     /**
-     * Filtert unerwuenschte Items aus TopMenu bevor gerendert wird.
-     * (CSS-Fallback in css() sichert nach, falls Reflection versagt.)
+     * Filtert Mitglieder-Eintrag aus TopMenu vor dem Rendern.
+     * Nutzt HumHubs offizielle Menu::getEntryByUrl + removeEntry API.
      */
     public static function onTopMenuBeforeRun($event)
     {
         try {
             $menu = $event->sender;
-            $ref = new \ReflectionClass($menu);
-            $prop = $ref->getProperty('items');
-            $prop->setAccessible(true);
-            $items = $prop->getValue($menu);
-            if (!is_array($items)) return;
-            $filtered = [];
-            foreach ($items as $item) {
-                $url = self::urlOf($item);
-                if (strpos($url, '/user/people') !== false) continue;
-                $filtered[] = $item;
-            }
-            $prop->setValue($menu, $filtered);
+            $entry = $menu->getEntryByUrl(['/user/people']);
+            if ($entry !== null) $menu->removeEntry($entry);
         } catch (\Throwable $e) {
             Yii::error('[lichtungtopbar] filter: ' . $e->getMessage());
         }
-    }
-
-    protected static function urlOf($item): string
-    {
-        if (is_array($item)) {
-            if (isset($item['url'])) {
-                if (is_string($item['url'])) return $item['url'];
-                if (is_array($item['url']) && isset($item['url'][0])) return (string)$item['url'][0];
-            }
-            return '';
-        }
-        if (is_object($item)) {
-            if (method_exists($item, 'getUrl')) {
-                $u = $item->getUrl();
-                if (is_string($u)) return $u;
-                if (is_array($u) && isset($u[0])) return (string)$u[0];
-            }
-        }
-        return '';
     }
 
     protected static function css(): string
@@ -95,10 +66,15 @@ body { padding-top: 50px !important; }
     padding: 0 15px !important;
     pointer-events: none !important;
 }
-#topbar-first .topbar-actions,
-#topbar-first .notifications {
-    pointer-events: auto !important;
-}
+/* Actions rechts sind klickbar */
+#topbar-first .topbar-actions { pointer-events: auto !important; }
+
+/* Notifications-Container ist absolut mit left:0;right:0 (voller Breite,
+   zentriert die Glocke). Der Container selbst darf keine Klicks fangen,
+   nur die inneren Icons (btn-group). */
+#topbar-first .notifications { pointer-events: none !important; }
+#topbar-first .notifications .btn-group,
+#topbar-first .notifications .btn-group > * { pointer-events: auto !important; }
 
 /* ============ #topbar-second auf gleiche Zeile heben ============ */
 #topbar-second {
