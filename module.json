@@ -1,0 +1,12 @@
+{
+    "id": "lichtungtopbar",
+    "name": "Lichtung Topbar-Filter",
+    "description": "Filtert unerwuenschte Menuepunkte aus der Lichtung-Topbar (Mitglieder, etc). Ergaenzt den LichtungTheme.",
+    "keywords": ["topbar", "menu", "filter", "lichtung"],
+    "version": "0.1.0",
+    "humhub": { "minVersion": "1.16" },
+    "homepage": "https://github.com/lichtungooo/humhub-modules-lichtung-topbar",
+    "authors": [
+        { "name": "Lichtung Kollektiv", "email": "frieden@lichtung.ooo", "role": "Maintainer" }
+    ]
+}
