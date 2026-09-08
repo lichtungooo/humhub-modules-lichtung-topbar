@@ -39,9 +39,13 @@ class Events
     protected static function css(): string
     {
         return <<<CSS
-/* ============ Ein-Leisten-Umbau v0.4 ============ */
+/* ============ Ein-Leisten-Umbau v0.6 ============ */
 
-body { padding-top: 50px !important; }
+/* HumHubs TopMenu-Items rendern Icon<br>Label - Header ist real ~65-70px hoch */
+body { padding-top: 65px !important; background: #435f6f !important; }
+
+/* Beide Balken exakt gleich hoch */
+#topbar-first, #topbar-second { height: 65px !important; }
 
 /* SiteLogo (Lichtung-Text) weg */
 #topbar-first .topbar-brand { display: none !important; }
