@@ -13,7 +13,7 @@ return [
     'class' => 'humhub\modules\lichtungtopbar\Module',
     'namespace' => 'humhub\modules\lichtungtopbar',
     'events' => [
-        [View::class, View::EVENT_END_BODY, ['\humhub\modules\lichtungtopbar\Events', 'onEndBody']],
+        [View::class, View::EVENT_BEGIN_BODY, ['\humhub\modules\lichtungtopbar\Events', 'onEndBody']],
         [TopMenu::class, TopMenu::EVENT_RUN, ['\humhub\modules\lichtungtopbar\Events', 'onTopMenuBeforeRun']],
     ],
 ];
