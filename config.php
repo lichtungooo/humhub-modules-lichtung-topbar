@@ -6,6 +6,7 @@
  */
 
 use humhub\modules\ui\view\components\View;
+use humhub\widgets\TopMenu;
 
 return [
     'id' => 'lichtungtopbar',
@@ -13,5 +14,6 @@ return [
     'namespace' => 'humhub\modules\lichtungtopbar',
     'events' => [
         [View::class, View::EVENT_END_BODY, ['\humhub\modules\lichtungtopbar\Events', 'onEndBody']],
+        [TopMenu::class, TopMenu::EVENT_BEFORE_RUN, ['\humhub\modules\lichtungtopbar\Events', 'onTopMenuBeforeRun']],
     ],
 ];
