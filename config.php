@@ -1,11 +1,10 @@
 <?php
 /**
- * Lichtung Topbar - Config
+ * Lichtung Topbar - Filter-Modul, ergaenzt LichtungTheme.
  *
  * @package humhub.modules.lichtungtopbar
  */
 
-use humhub\modules\ui\view\components\View;
 use humhub\widgets\TopMenu;
 
 return [
@@ -13,7 +12,6 @@ return [
     'class' => 'humhub\modules\lichtungtopbar\Module',
     'namespace' => 'humhub\modules\lichtungtopbar',
     'events' => [
-        [View::class, View::EVENT_BEGIN_BODY, ['\humhub\modules\lichtungtopbar\Events', 'onEndBody']],
         [TopMenu::class, TopMenu::EVENT_RUN, ['\humhub\modules\lichtungtopbar\Events', 'onTopMenuBeforeRun']],
     ],
 ];
